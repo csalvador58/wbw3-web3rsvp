@@ -8,6 +8,7 @@ const main = async () => {
 
     const [deployer, address1, address2] = await hre.ethers.getSigners();
 
+    // Set mock data for testing creating a new event
     let deposit = hre.ethers.utils.parseEther("1");
     let maxCapacity = 3;
     let timestamp = 1718926200;
@@ -19,34 +20,46 @@ const main = async () => {
         maxCapacity,
         eventDataCID
     );
+
     let wait = await txn.wait();
     console.log("NEW EVENT CREATED:", wait.events[0].event, wait.events[0].args);
 
-    let eventID = wait.events[0].args.eventID;
-    console.log("EVENT ID:", eventID);
+    let eventId = wait.events[0].args.eventId;
+    console.log("EVENT ID:", eventId);
 
-    txn = await rsvpContract.createNewEvent(eventID, { value: deposit });
+    // test creating new event with above mock data
+    txn = await rsvpContract.createNewRSVP(eventId, { value: deposit });
     wait = await txn.wait();
     console.log("NEW RSVP:", wait.events[0].event, wait.events[0].args);
 
     txn = await rsvpContract
         .connect(address1)
-        .createNewRSVP(eventID, { value: deposit });
-
+        .createNewRSVP(eventId, { value: deposit });
     wait = await txn.wait();
     console.log("NEW RSVP:", wait.events[0].event, wait.events[0].args);
 
     txn = await rsvpContract
-        .connect (address2)
-        .createNewRSVP(eventID, { value: deposit})
+        .connect(address2)
+        .createNewRSVP(eventId, { value: deposit })
     wait = await txn.wait();
-    console.log ("NEW RSVP:") wait.events[0].event, wait.events[0].args;
+    console.log ("NEW RSVP:"), wait.events[0].event, wait.events[0].args;
 
-    // wait 10 years
-    await hre.network.provider.send("evm-increaseTime"m [157788000000]);
+    // confirm all RSVPs
+    txn = await rsvpContract.confirmAllAttendees(eventId);
+    wait = await txn.wait();
+    wait.events.forEach((event) =>
+        console.log("CONFIRMED:", event.args.attendeeAddress)
+    );
+
+    // wait 10 years to test withdrawal of unclaimed deposits
+    await hre.network.provider.send("evm_increaseTime", [15778800000000]);
+
+    txn = await rsvpContract.withdrawUnclaimedDeposits(eventId);
+    wait = await txn.wait();
+    console.log("WITHDRAWN:", wait.events[0].event, wait.events[0].args);
 };
 
-const runMain - async () => {
+const runMain = async () => {
     try {
         await main();
         process.exit(0);

@@ -8,19 +8,19 @@ import "hardhat/console.sol";
 contract Web3RSVP {
 
     event NewEventCreated(
-      bytes32 eventID,
+      bytes32 eventId,
       address creatorAddress,
       uint256 eventTimestamp,
-      uint256 macCapacity,
+      uint256 maxCapacity,
       uint256 deposit,
       string eventDataCID  
     );
 
-    event NewRSVP(bytes32 eventID, address attendeeAddress);
+    event NewRSVP(bytes32 eventId, address attendeeAddress);
 
-    event ConfirmedAttendee(bytes32 eventID, address attendeeAddress);
+    event ConfirmedAttendee(bytes32 eventId, address attendeeAddress);
 
-    event DepositsPaidOut(bytes32 eventID);
+    event DepositsPaidOut(bytes32 eventId);
 
     struct CreateEvent {
         bytes32 eventId;
@@ -42,7 +42,7 @@ contract Web3RSVP {
         uint256 maxCapacity,
         string calldata eventDataCID
     ) external {
-        // generate an eventID based on other things passed in to generate a hash
+        // generate an eventId based on other things passed in to generate a hash
         bytes32 eventId = keccak256(
             abi.encodePacked(
                 msg.sender,
@@ -126,16 +126,16 @@ contract Web3RSVP {
     }
 
 
-    function confirmAttendee(bytes32 eventID, address attendee) public {
-        // look up event from our struct using the eventID
-        CreateEvent storage myEvent = idToEvent[eventID];
+    function confirmAttendee(bytes32 eventId, address attendee) public {
+        // look up event from our struct using the eventId
+        CreateEvent storage myEvent = idToEvent[eventId];
 
         // require that the msg.sender is the owner of the event - only the host should be able
         //  to check in people
         require(msg.sender == myEvent.eventOwner, "NOT AUTHORIZED");
 
         // require that the attendee trying to check in actually RSVP'd
-        address rsvpConfrm;
+        address rsvpConfirm;
 
         for (uint8 i = 0; i < myEvent.confirmedRSVPs.length; i++) {
             if(myEvent.confirmedRSVPs[i] == attendee) {
@@ -159,7 +159,7 @@ contract Web3RSVP {
         myEvent.claimedRSVPs.push(attendee);
 
         // sending eth back to the staker `https://solidity-by-example.org/sending-ether`
-        (bool sent,) = attendee.call{valule: myEvent.deposit}("");
+        (bool sent,) = attendee.call{value: myEvent.deposit}("");
 
         // if this fails, remove the user from the array of claimed RSVPs
         if (!sent) {
@@ -173,6 +173,7 @@ contract Web3RSVP {
 
 
     function withdrawUnclaimedDeposits(bytes32 eventId) external {
+
         // look up event
         CreateEvent memory myEvent = idToEvent[eventId];
 
@@ -203,40 +204,7 @@ contract Web3RSVP {
         }
 
         require(sent, "Failed to sent Ether");
-
         emit DepositsPaidOut(eventId);
     }
 
 }
-
-
-/*
-contract Lock {
-    uint public unlockTime;
-    address payable public owner;
-
-    event Withdrawal(uint amount, uint when);
-
-    constructor(uint _unlockTime) payable {
-        require(
-            block.timestamp < _unlockTime,
-            "Unlock time should be in the future"
-        );
-
-        unlockTime = _unlockTime;
-        owner = payable(msg.sender);
-    }
-
-    function withdraw() public {
-        // Uncomment this line to print a log in your terminal
-        // console.log("Unlock time is %o and block timestamp is %o", unlockTime, block.timestamp);
-
-        require(block.timestamp >= unlockTime, "You can't withdraw yet");
-        require(msg.sender == owner, "You aren't the owner");
-
-        emit Withdrawal(address(this).balance, block.timestamp);
-
-        owner.transfer(address(this).balance);
-    }
-}
-*/
