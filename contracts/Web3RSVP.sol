@@ -6,6 +6,22 @@ import "hardhat/console.sol";
 
 
 contract Web3RSVP {
+
+    event NewEventCreated(
+      bytes32 eventID,
+      address creatorAddress,
+      uint256 eventTimestamp,
+      uint256 macCapacity,
+      uint256 deposit,
+      string eventDataCID  
+    );
+
+    event NewRSVP(bytes32 eventID, address attendeeAddress);
+
+    event ConfirmedAttendee(bytes32 eventID, address attendeeAddress);
+
+    event DepositsPaidOut(bytes32 eventID);
+
     struct CreateEvent {
         bytes32 eventId;
         string eventDataCID;
@@ -23,7 +39,7 @@ contract Web3RSVP {
     function createNewEvent(
         uint256 eventTimestamp,
         uint256 deposit,
-        uint maxCapacity,
+        uint256 maxCapacity,
         string calldata eventDataCID
     ) external {
         // generate an eventID based on other things passed in to generate a hash
@@ -55,6 +71,15 @@ contract Web3RSVP {
             claimedRSVPs,
             false
         );
+
+        emit NewEventCreated(
+            eventId,
+            msg.sender,
+            eventTimestamp,
+            maxCapacity,
+            deposit,
+            eventDataCID
+        );
     }
 
 
@@ -82,10 +107,27 @@ contract Web3RSVP {
         }
 
         myEvent.confirmedRSVPs.push(payable(msg.sender));
+
+        emit NewRSVP(eventId, msg.sender);
     }
 
+
+    function confirmAllAttendees(bytes32 eventId) external {
+        // look up event from our struct with the eventId
+        CreateEvent memory myEvent = idToEvent[eventId];
+
+        // make sure you require that msg.sender is the owner of the event
+        require(msg.sender == myEvent.eventOwner, "NOT AUTHORIZED");
+
+        // confirm each attendee in the rsvp array
+        for(uint8 i = 0; i < myEvent.confirmedRSVPs.length; i++) {
+            confirmAttendee(eventId, myEvent.confirmedRSVPs[i]);
+        }
+    }
+
+
     function confirmAttendee(bytes32 eventID, address attendee) public {
-        // look up event from out struct using the eventID
+        // look up event from our struct using the eventID
         CreateEvent storage myEvent = idToEvent[eventID];
 
         // require that the msg.sender is the owner of the event - only the host should be able
@@ -125,20 +167,8 @@ contract Web3RSVP {
         }
 
         require(sent, "Failed to send ether");
-    }
 
-
-    function confirmAllAttendees(bytes32 eventId) external {
-        // look up event from our struct with the eventId
-        CreateEvent memory myEvent = idToEvent[eventId];
-
-        // make sure you require that msg.sender is the owner of the event
-        require(msg.sender == myEvent.eventOwner, "NOT AUTHORIZED");
-
-        // confirm each attendee in the rsvp array
-        for(uint8 i = 0; i < myEvent.confirmedRSVPs.length; i++) {
-            confirmAttendee(eventId, myEvent.confirmedRSVPs[i]);
-        }
+        emit ConfirmedAttendee(eventId, attendee);
     }
 
 
@@ -173,6 +203,8 @@ contract Web3RSVP {
         }
 
         require(sent, "Failed to sent Ether");
+
+        emit DepositsPaidOut(eventId);
     }
 
 }
