@@ -1,0 +1,23 @@
+{
+  "name": "wbw3-web3rsvp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/csalvador58/wbw3-web3rsvp.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/csalvador58/wbw3-web3rsvp/issues"
+  },
+  "homepage": "https://github.com/csalvador58/wbw3-web3rsvp#readme",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^1.0.2",
+    "hardhat": "^2.10.1"
+  }
+}
