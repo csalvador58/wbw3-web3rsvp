@@ -14,7 +14,7 @@ const main = async () => {
   console.log("Contract deployed to:", rsvpContract.address);
 };
 
-const runMain = asyn () => {
+const runMain = async () => {
   try {
     await main();
     process.exit(0);
