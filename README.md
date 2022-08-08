@@ -1,13 +1,3 @@
-# Sample Hardhat Project
+# Project: Web3RSVP from #30DaysOfWeb3 @womenbuildweb3
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
-
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-GAS_REPORT=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
-```
+Contract deployed to: 0x7E99bFB806700bcC17624E62a98d967ee99bA012
